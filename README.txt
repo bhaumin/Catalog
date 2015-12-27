@@ -1,5 +1,5 @@
-Catalog
----------
+Item Catalog
+-------------
 
 This application allows you to view and manage a catalog which comprises of different categories and their items
 
