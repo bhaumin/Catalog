@@ -207,6 +207,11 @@ def getAllCategories():
 
 # Get latest X items
 def getLatestXItems(item_count):
+    """
+    getLatestXItems: get the latest X items
+    Args:
+        item_count (int): specifies the count of items requested
+    """
     return session.query(Item) \
             .order_by(desc(Item.date_added)) \
             .limit(item_count)
@@ -247,6 +252,11 @@ def isAuthorized(item_user_id, session_user_id):
 # Show Category Items
 @app.route('/catalog/<string:category_name>/items')
 def showCategoryItems(category_name):
+    """
+    showCategoryItems: returns items for requested category
+    Args:
+        category_name (str): the category to fetch items from
+    """
     categories = getAllCategories()
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
@@ -267,6 +277,12 @@ def showCategoryItems(category_name):
 # Show Item Details
 @app.route('/catalog/<string:category_name>/<string:item_title>')
 def showItemDetails(category_name, item_title):
+    """
+    showItemDetails: returns details of an item
+    Args:
+        category_name (str): category of the item
+        item_title (str): item title
+    """
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
         .one()
@@ -284,6 +300,9 @@ def showItemDetails(category_name, item_title):
 @app.route('/catalog/item/add', methods=['GET', 'POST'])
 @loginRequired
 def addItem():
+    """
+    addItem: adds an item
+    """
     if request.method == 'POST':
             newItem = Item(
                       title=request.form['title'],
@@ -305,6 +324,12 @@ def addItem():
            methods=['GET', 'POST'])
 @loginRequired
 def editItem(category_name, item_title):
+    """
+    editItem: edit an item
+    Args:
+        category_name (str): category of the item to edit
+        item_title (str): title of the item to edit
+    """
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
         .one()
@@ -338,6 +363,12 @@ def editItem(category_name, item_title):
            methods=['GET', 'POST'])
 @loginRequired
 def deleteItem(category_name, item_title):
+    """
+    deleteItem: delete an item
+    Args:
+        category_name (str): category of the item to delete
+        item_title (str): title of the item to delete
+    """
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
         .one()
