@@ -30,17 +30,6 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-# Decorator function for checking if user is logged in and
-# redirecting to login page if not
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in login_session:
-            return redirect(url_for('showLogin', next=request.url))
-        return f(*args, **kwargs)
-    return decorated_function
-
-
 @app.route('/login')
 def showLogin():
     # Create a state token to prevent request forgery.
@@ -233,6 +222,28 @@ def showCatalog():
                            username=login_session.get('username'))
 
 
+# Decorator function for checking if user is logged in and
+# redirecting to login page if not
+def loginRequired(f):
+    @wraps(f)
+    def decoratedFunction(*args, **kwargs):
+        if 'username' not in login_session:
+            return redirect(url_for('showLogin', next=request.url))
+        return f(*args, **kwargs)
+    return decoratedFunction
+
+
+# Checks if the user is authorized to Edit/Delete a given item
+def isAuthorized(item_user_id, session_user_id):
+    if item_user_id != session_user_id:
+        return "<script>function myFunction() { alert('You are not \
+            authorized to edit or delete this item. You can only \
+            edit or delete your own item.');}</script> \
+            <body onload='myFunction()'>"
+    else:
+        return True
+
+
 # Show Category Items
 @app.route('/catalog/<string:category_name>/items')
 def showCategoryItems(category_name):
@@ -271,7 +282,7 @@ def showItemDetails(category_name, item_title):
 
 # Add a new category item
 @app.route('/catalog/item/add', methods=['GET', 'POST'])
-@login_required
+@loginRequired
 def addItem():
     if request.method == 'POST':
             newItem = Item(
@@ -292,7 +303,7 @@ def addItem():
 # Edit a category item
 @app.route('/catalog/<string:category_name>/<string:item_title>/edit',
            methods=['GET', 'POST'])
-@login_required
+@loginRequired
 def editItem(category_name, item_title):
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
@@ -302,35 +313,30 @@ def editItem(category_name, item_title):
         .filter_by(title=item_title, cat_id=selected_category.id) \
         .one()
 
-    if itemToEdit.user_id != login_session['user_id']:
-        return "<script>function myFunction() { alert('You are not \
-            authorized to edit this item. Please create your own item \
-            in order to edit it.');}</script> \
-            <body onload='myFunction()'>"
-
-    if request.method == 'POST':
-        itemToEdit.title = request.form['title']
-        itemToEdit.description = request.form['description']
-        itemToEdit.cat_id = request.form['category_id']
-        user_id = login_session['user_id']
-        session.add(itemToEdit)
-        flash('Item %s Successfully Edited' % itemToEdit.title)
-        session.commit()
-        return redirect(url_for('showItemDetails',
-                        category_name=itemToEdit.category.name,
-                        item_title=itemToEdit.title))
-    else:
-        categories = getAllCategories()
-        return render_template('editItem.html',
-                               categories=categories,
-                               item=itemToEdit,
-                               username=login_session.get('username'))
+    if isAuthorized(itemToEdit.user_id, login_session['user_id']):
+        if request.method == 'POST':
+            itemToEdit.title = request.form['title']
+            itemToEdit.description = request.form['description']
+            itemToEdit.cat_id = request.form['category_id']
+            user_id = login_session['user_id']
+            session.add(itemToEdit)
+            flash('Item %s Successfully Edited' % itemToEdit.title)
+            session.commit()
+            return redirect(url_for('showItemDetails',
+                            category_name=itemToEdit.category.name,
+                            item_title=itemToEdit.title))
+        else:
+            categories = getAllCategories()
+            return render_template('editItem.html',
+                                   categories=categories,
+                                   item=itemToEdit,
+                                   username=login_session.get('username'))
 
 
 # Delete a category item
 @app.route('/catalog/<string:category_name>/<string:item_title>/delete',
            methods=['GET', 'POST'])
-@login_required
+@loginRequired
 def deleteItem(category_name, item_title):
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
@@ -340,20 +346,16 @@ def deleteItem(category_name, item_title):
         .filter_by(title=item_title, cat_id=selected_category.id) \
         .one()
 
-    if itemToDelete.user_id != login_session['user_id']:
-        return "<script>function myFunction() { alert('You are not \
-                authorized to delete this item. Please create your \
-                own item in order to delete it.');}</script> \
-                <body onload='myFunction()'>"
-    if request.method == 'POST':
-        session.delete(itemToDelete)
-        session.commit()
-        flash('Item %s Successfully Deleted' % itemToDelete.title)
-        return redirect(url_for('showCatalog'))
-    else:
-        return render_template('deleteItem.html',
-                               item=itemToDelete,
-                               username=login_session.get('username'))
+    if isAuthorized(itemToDelete.user_id, login_session['user_id']):
+        if request.method == 'POST':
+            session.delete(itemToDelete)
+            session.commit()
+            flash('Item %s Successfully Deleted' % itemToDelete.title)
+            return redirect(url_for('showCatalog'))
+        else:
+            return render_template('deleteItem.html',
+                                   item=itemToDelete,
+                                   username=login_session.get('username'))
 
 
 # JSON API to view Catalog Information
