@@ -20,60 +20,14 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
+categories_to_populate = ["Soccer", "Basketball", "Baseball", "Frisbee",
+                          "Snowboarding", "Rock Climbing", "Foosball",
+                          "Skating", "Hockey"]
 
-# Category - Soccer
-soccer = Category(name="Soccer")
+for category in categories_to_populate:
+    new_cat = Category(name=category)
+    session.add(new_cat)
 
-session.add(soccer)
 session.commit()
-
-# Category - Basketball
-basketball = Category(name="Basketball")
-
-session.add(basketball)
-session.commit()
-
-# Category - Baseball
-baseball = Category(name="Baseball")
-
-session.add(baseball)
-session.commit()
-
-# Category - Frisbee
-frisbee = Category(name="Frisbee")
-
-session.add(frisbee)
-session.commit()
-
-# Category - Snowboarding
-snowboarding = Category(name="Snowboarding")
-
-session.add(snowboarding)
-session.commit()
-
-# Category - Rock Climbing
-rockclimbing = Category(name="Rock Climbing")
-
-session.add(rockclimbing)
-session.commit()
-
-# Category - Foosball
-foosball = Category(name="Foosball")
-
-session.add(foosball)
-session.commit()
-
-# Category - Skating
-skating = Category(name="Skating")
-
-session.add(skating)
-session.commit()
-
-# Category - Hockey
-hockey = Category(name="Hockey")
-
-session.add(hockey)
-session.commit()
-
 
 print "added categories!"
