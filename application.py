@@ -15,6 +15,7 @@ import requests
 from werkzeug.contrib.atom import AtomFeed
 import dicttoxml
 from xml.dom.minidom import parseString
+from functools import wraps
 
 app = Flask(__name__)
 
@@ -28,12 +29,22 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-# Create a state token to prevent request forgery.
-# Store it in the session for later validation.
+
+# Decorator function for checking if user is logged in and
+# redirecting to login page if not
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in login_session:
+            return redirect(url_for('showLogin', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @app.route('/login')
 def showLogin():
+    # Create a state token to prevent request forgery.
+    # Store it in the session for later validation.
     state = ''.join(
       random.choice(string.ascii_uppercase + string.digits)
       for x in xrange(32)
@@ -260,10 +271,8 @@ def showItemDetails(category_name, item_title):
 
 # Add a new category item
 @app.route('/catalog/item/add', methods=['GET', 'POST'])
+@login_required
 def addItem():
-    if 'username' not in login_session:
-        return redirect('/login')
-
     if request.method == 'POST':
             newItem = Item(
                       title=request.form['title'],
@@ -283,10 +292,8 @@ def addItem():
 # Edit a category item
 @app.route('/catalog/<string:category_name>/<string:item_title>/edit',
            methods=['GET', 'POST'])
+@login_required
 def editItem(category_name, item_title):
-    if 'username' not in login_session:
-        return redirect('/login')
-
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
         .one()
@@ -323,10 +330,8 @@ def editItem(category_name, item_title):
 # Delete a category item
 @app.route('/catalog/<string:category_name>/<string:item_title>/delete',
            methods=['GET', 'POST'])
+@login_required
 def deleteItem(category_name, item_title):
-    if 'username' not in login_session:
-        return redirect('/login')
-
     selected_category = session.query(Category) \
         .filter_by(name=category_name) \
         .one()
