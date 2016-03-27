@@ -40,6 +40,6 @@ You need to have installed `python 2.7.6` and `SqlAlchemy 0.8.4` in your machine
 6. Open the browser and go to `http://localhost:8000/`, this will open the catalog application.
 7. You should be able to add/edit/modify the catalog items.
 8. API Endpoints that returns all categories and its items:
-	a. JSON: `http://localhost:8000/catalog.json`
-	b. XML: `http://localhost:8000/catalog.xml`
-	c. Atom (Returns the latest 10 items added/modified): `http://localhost:8000/catalog.atom`
+	1. JSON: `http://localhost:8000/catalog.json`
+	2. XML: `http://localhost:8000/catalog.xml`
+	3. Atom (Returns the latest 10 items added/modified): `http://localhost:8000/catalog.atom`
